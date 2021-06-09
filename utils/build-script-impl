@@ -227,6 +227,7 @@ KNOWN_SETTINGS=(
     cross-compile-hosts                           ""                "space-separated list of targets to cross-compile host Swift tools for"
     cross-compile-with-host-tools                 ""                "set to use the clang we build for the host to then build the cross-compile hosts"
     cross-compile-install-prefixes                ""                "semicolon-separated list of install prefixes to use for the cross-compiled hosts. The list expands, so if there are more cross-compile hosts than prefixes, unmatched hosts use the last prefix in the list"
+    cross-compile-deps-path                       ""                "path for CMake to look for cross-compiled library dependencies"
     skip-merge-lipo-cross-compile-tools           ""                "set to skip running merge-lipo after installing cross-compiled host Swift tools"
     coverage-db                                   ""                "If set, coverage database to use when prioritizing testing"
     skip-local-host-install                       ""                "If we are cross-compiling multiple targets, skip an install pass locally if the hosts match"
@@ -2216,6 +2217,16 @@ for host in "${ALL_HOSTS[@]}"; do
                     -Ddispatch_DIR:PATH=$(build_directory ${host} libdispatch)/cmake/modules
                     -DFoundation_DIR:PATH=$(build_directory ${host} foundation)/cmake/modules
                 )
+                
+                if [[ $(is_cross_tools_host ${host}) ]] ; then
+                    cmake_options+=("${SWIFT_TARGET_CMAKE_OPTIONS[@]}")
+
+                    # CROSS_COMPILE_DEPS_PATH is searched for the SQLite3 dependency.
+                    cmake_options+=(
+                        -DCMAKE_FIND_ROOT_PATH:PATH="${CROSS_COMPILE_DEPS_PATH}"
+                        -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER
+                    )
+                fi
 
                 # Ensure on Darwin platforms that we consider only the SQLite headers
                 # from the SDK instead of picking ones found elsewhere
@@ -2367,6 +2378,17 @@ for host in "${ALL_HOSTS[@]}"; do
 
                   -DBUILD_SHARED_LIBS=$([[ ${product} == foundation_static ]] && echo "NO" || echo "YES")
                 )
+                
+                if [[ $(is_cross_tools_host ${host}) ]] ; then
+                    cmake_options+=("${SWIFT_TARGET_CMAKE_OPTIONS[@]}")
+
+                    # CROSS_COMPILE_DEPS_PATH is searched for the ICU, libXML2
+                    # and libcurl dependencies.
+                    cmake_options+=(
+                        -DCMAKE_FIND_ROOT_PATH:PATH="${CROSS_COMPILE_DEPS_PATH}"
+                        -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER
+                    )
+                fi
 
                 ;;
             libdispatch|libdispatch_static)
