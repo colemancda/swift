@@ -283,6 +283,15 @@ if(SWIFT_SHOULD_BUILD_EMBEDDED_STDLIB_CROSS_COMPILING)
         "powerpc  powerpc-none-none-eabi    powerpc-none-none-eabi"
       )
     endif()
+
+    if("Mips" IN_LIST LLVM_TARGETS_TO_BUILD)
+      list(APPEND EMBEDDED_STDLIB_TARGET_TRIPLES
+        "mips    mips-none-none-elf      mips-none-none-elf"
+        "mipsel  mipsel-none-none-elf    mipsel-none-none-elf"
+        "mips64  mips64-none-none-elf    mips64-none-none-elf"
+        "mips64el mips64el-none-none-elf mips64el-none-none-elf"
+      )
+    endif()
   endif()
 endif()
 
